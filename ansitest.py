@@ -15,6 +15,7 @@ def test_attributes():
         ['Underline', 4],
         ['Slow blink', 5],
         ['Rapid blink', 6],
+        ['', 0], # Do not put Underline right above Reverse
         ['Reverse', 7],
         ['Conceal', 8],
         ['Crossed-out', 9],
