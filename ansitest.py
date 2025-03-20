@@ -7,6 +7,22 @@ def styled(text, *attributes):
     '''Decorate the text with ANSI codes'''
     return sgr(*attributes) + text + sgr(0)
 
+def contrast(color):
+    '''Return white or black, depending on the given color'''
+    if color < 7:
+        return 15
+    elif color < 16:
+        return 0
+    elif color < 232:
+        if (color - 16) % 36 < 18:
+            return 15
+        else:
+            return 0
+    elif color < 244:
+        return 15
+    else:
+        return 0
+
 def test_attributes():
     styles = [
         ['Bold', 1],
@@ -49,26 +65,7 @@ def test_attributes():
             cells.append(styled('%-32s' % (styles[i][0],), *styles[i][1:]))
         print(''.join(cells))
 
-def test_xterm_colors():
-    def box(fg, bg, width):
-        return styled(' ' * (width - 4) + '%3d ' % (bg,), 38, 5, fg, 48, 5, bg)
-    def contrast(color):
-        if color < 7:
-            return 15
-        elif color < 16:
-            return 0
-        elif color < 232:
-            if (color - 16) % 36 < 18:
-                return 15
-            else:
-                return 0
-        elif color < 244:
-            return 15
-        else:
-            return 0
-    def print_row(start, stop, width):
-        print(''.join(box(contrast(color), color, width) for color in range(start, stop)))
-
+def test_xterm_colors(print_row):
     print_row(0, 8, 12)
     print_row(8, 16, 12)
     for block in range(3):
@@ -77,6 +74,31 @@ def test_xterm_colors():
             print_row(start, start + 12, 8)
     print_row(232, 244, 8)
     print_row(244, 256, 8)
+
+def test_xterm_colors_fg():
+    def box(fg, width):
+        return styled(' ' * (width - 4) + '%3d ' % (fg,), 38, 5, fg)
+    def print_row(start, stop, width):
+        print(''.join(box(color, width) for color in range(start, stop)))
+
+    test_xterm_colors(print_row)
+
+def test_xterm_colors_bg_spacing():
+    def box(fg, bg, width):
+        return styled(' ' * (width - 5) + '%3d ' % (bg,), 38, 5, fg, 48, 5, bg)
+    def print_row(start, stop, width):
+        print(' '.join(box(contrast(color), color, width) for color in range(start, stop)))
+        print()
+
+    test_xterm_colors(print_row)
+
+def test_xterm_colors_bg():
+    def box(fg, bg, width):
+        return styled(' ' * (width - 4) + '%3d ' % (bg,), 38, 5, fg, 48, 5, bg)
+    def print_row(start, stop, width):
+        print(''.join(box(contrast(color), color, width) for color in range(start, stop)))
+
+    test_xterm_colors(print_row)
 
 def test_rgb_colors():
     for r in range(0, 256, 16):
@@ -88,9 +110,17 @@ def main():
     print()
     test_attributes()
     print()
-    print('XTerm colors')
+    print('XTerm colors, foreground')
     print()
-    test_xterm_colors()
+    test_xterm_colors_fg()
+    print()
+    print('XTerm colors, background, with spacing')
+    print()
+    test_xterm_colors_bg_spacing()
+    print()
+    print('XTerm colors, background')
+    print()
+    test_xterm_colors_bg()
     print()
     print('RGB colors')
     print()
